@@ -4,75 +4,165 @@ import axios from "axios";
 export default {
   data() {
     return {
-      cards: [
-
-      ],
+      // array che conterrà le carte scaricate
+      cards: [],
+      // array che conterrà le carte scaricate
+      selectedArchetype: "",
+       // array che conterrà tutti gli archetipi presenti nelle carte scaricate
+      archetypes: []
     };
   },
+
+  // fetchArchetypes viene eseguita quando il componente viene creato
   created() {
-  axios
-    .get("https://db.ygoprodeck.com/api/v7/cardinfo.php", {
-      params: {
-        num: 15,
-        offset: 2,
-        archetype: "alien"
-      }
-    })
-    .then((response) => {
-      this.cards = response.data.data;
-    });
-},
+    this.fetchArchetypes();
+  },
+
+  // watch serve a monitorare i cambiamenti della variabile selectedArchetype
+  watch: {
+    selectedArchetype: function() {
+      this.fetchCardsByArchetype();
+    }
+  },
+
+  methods: {
+    // metodo per scaricare le carte in base all'archetipo selezionato
+    fetchCardsByArchetype() {
+      axios
+        .get("https://db.ygoprodeck.com/api/v7/cardinfo.php", {
+          params: {
+            num: 500,
+            offset: 0,
+            archetype: this.selectedArchetype
+          }
+        })
+        .then((response) => {
+          this.cards = response.data.data;
+        });
+    },
+
+    fetchArchetypes() {
+      axios
+        .get("https://db.ygoprodeck.com/api/v7/cardinfo.php")
+        .then((response) => {
+          const allCards = response.data.data;
+          const archetypesSet = new Set();
+           // scorre tutte le carte e ne estrae l'archetipo (se presente)
+          allCards.forEach((card) => {
+            if (card.archetype) {
+              archetypesSet.add(card.archetype);
+            }
+          });
+          // converte il Set in un array e lo assegna alla variabile archetypes
+          this.archetypes = Array.from(archetypesSet);
+        });
+    }
+  }
 };
 </script>
 
 <template>
-  <div class="cards-container">
-    <div class="single-card" v-for="(card, index) in cards" :key="card.id">
-      <img :src="card.card_images[0].image_url" alt="card">
-      <h3>{{ card.name }}</h3>
-      <h4>{{ card.archetype }}</h4>
+  <main>
+    <div class="container-1">
+      <select v-model="selectedArchetype">
+        <option value="">-- Seleziona un Archetype --</option>
+        <option v-for="archetype in archetypes" :value="archetype">{{ archetype }}</option>
+      </select>
+      <div class="container-2">
+        <div class="container-3">
+          <div class="found-card-display">
+            <span>Found {{ cards.length }} cards</span>
+          </div>
+          <div class="cards-container">
+            <div class="single-card" v-for="(card, index) in cards" :key="card.id">
+              <img :src="card.card_images[0].image_url" alt="card">
+              <h3>{{ card.name }}</h3>
+              <h4>{{ card.archetype }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>
-  .cards-container {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    grid-gap: 20px;
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.container-1 {
+  width: 1200px;
+  
+  select {
+    padding: 10px 0px;
+    margin: 30px 0 30px 20px;
+  }
+  .container-2 {
+    width: 1200px;
+    padding: 50px 0;
+    display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
-    max-width: 1200px;
-    .single-card {
-      width: 200px;
+    background-color: white;
 
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-      
-      background-color: #D48F38;
-
-      h3 {
+    .container-3 {
+      width: 1100px;
+      .found-card-display {
+        display: flex;
+        align-items: center;
+        height: 55px;
+        background-color: #212529;
         color: white;
-        font-size: 24px;
-        font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         font-weight: bold;
 
-        height: 120px;
-        padding: 20px 0;
+        span {
+          padding-left: 20px;
+        }
       }
 
-      h4 {
-        font-size: 22px;
-        font-weight: 400;
+      .cards-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-gap: 20px;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding: 0;
+        .single-card {
+          width: 200px;
 
-        height: 30px;
-        padding: 0 0 20px 0;
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+          
+          background-color: #D48F38;
+
+          h3 {
+            color: white;
+            font-size: 24px;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            font-weight: bold;
+
+            height: 120px;
+            padding: 20px 0;
+          }
+
+          h4 {
+            font-size: 22px;
+            font-weight: 400;
+
+            height: 30px;
+            padding: 0 0 20px 0;
+          }
+        }
       }
     }
-  }
+  }  
+}
 </style>
 
 <!-- {

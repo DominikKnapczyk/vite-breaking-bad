@@ -1,19 +1,14 @@
 <script>
 import CardList from './components/CardList.vue';
+import Header from './components/Header.vue';
 
 export default {
-  data() {
-    return {
-      title: "Nuovo Progetto"
-    };
-  },
-
-  components: {CardList},
+  components: {CardList, Header},
 }
 </script>
 
 <template>
- 
+  <Header />
   <CardList />
 </template>
 
